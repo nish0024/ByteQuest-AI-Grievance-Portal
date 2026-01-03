@@ -1,19 +1,82 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// PASTE YOUR MONGO CONNECTION STRING HERE LATER
-// mongoose.connect("mongodb+srv://admin:admin123@nishtha.dg0dgkd.mongodb.net/?appName=nishtha");
+// --- CONFIGURATION ---
+// PASTE YOUR MONGO URL HERE
+const MONGO_URL = "mongodb+srv://admin:***REMOVED***@nishtha.dg0dgkd.mongodb.net/?appName=nishtha"; 
 
-app.get('/', (req, res) => {
-    res.send("Backend is Working!");
+// PASTE YOUR GEMINI API KEY HERE
+const genAI = new GoogleGenerativeAI("AIzaSyCMDPMtrfPvQhhkDDx0DT4DNxN_kdtyka8");
+const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+
+// --- DATABASE MODEL ---
+const GrievanceSchema = new mongoose.Schema({
+  citizenName: String,
+  description: String,
+  category: String,
+  priority: String,
+  aiSummary: String,
+  status: { type: String, default: 'Pending' },
+  createdAt: { type: Date, default: Date.now }
+});
+const Grievance = mongoose.model('Grievance', GrievanceSchema);
+
+// --- CONNECT TO DB ---
+mongoose.connect(MONGO_URL)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+
+// --- THE AI ROUTE ---
+app.post('/api/report', async (req, res) => {
+  const { citizenName, description } = req.body;
+
+  try {
+    // 1. Ask AI to analyze the complaint
+    const prompt = `
+      Analyze this grievance: "${description}".
+      Respond ONLY with a JSON object (no markdown) in this format:
+      { "category": "category_name", "priority": "High/Medium/Low", "summary": "1-sentence summary" }
+    `;
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Clean up AI text to ensure it's valid JSON
+    const jsonString = text.replace(/```json|```/g, '').trim(); 
+    const aiData = JSON.parse(jsonString);
+
+    // 2. Save to Database
+    const newGrievance = new Grievance({
+      citizenName,
+      description,
+      category: aiData.category,
+      priority: aiData.priority,
+      aiSummary: aiData.summary
+    });
+
+    await newGrievance.save();
+    res.json({ message: "Grievance Filed!", data: newGrievance });
+
+  } catch (error) {
+    console.error("AI Error:", error);
+    res.status(500).json({ error: "Failed to process grievance" });
+  }
+});
+
+// --- GET ALL GRIEVANCES (For Admin Dashboard) ---
+app.get('/api/grievances', async (req, res) => {
+  const grievances = await Grievance.find().sort({ createdAt: -1 });
+  res.json(grievances);
 });
 
 app.listen(3001, () => {
-    console.log("Server is running on port 3001");
+  console.log("Server running on port 3001");
 });
