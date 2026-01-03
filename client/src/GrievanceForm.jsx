@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 export default function GrievanceForm() {
@@ -29,8 +29,12 @@ export default function GrievanceForm() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [timer, setTimer] = useState(0);
+  
+  // Backend & AI States
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [trackingId, setTrackingId] = useState('');
+  const [aiResult, setAiResult] = useState(null); // Stores the Gemini Analysis
   const [errors, setErrors] = useState({});
 
   const departments = [
@@ -55,7 +59,7 @@ export default function GrievanceForm() {
   ];
 
   // Start timer when OTP is sent
-  useState(() => {
+  useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => {
         setTimer(prev => prev - 1);
@@ -65,7 +69,10 @@ export default function GrievanceForm() {
   }, [timer]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e;
+    // Handle both direct events and manual calls
+    const target = e.target ? e.target : e;
+    const { name, value } = target;
+    
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -77,20 +84,20 @@ export default function GrievanceForm() {
       setErrors(prev => ({ ...prev, mobile: 'Enter valid Indian mobile number' }));
       return;
     }
-    const fakeOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    const fakeOtp = "1234"; // Fixed for Demo
     setGeneratedOtp(fakeOtp);
     setIsOtpSent(true);
-    setTimer(120); // 2 minutes
-    alert(`OTP sent to +91-${formData.mobile}\n\nYour OTP: ${fakeOtp}\n\nValid for 2 minutes`);
+    setTimer(120); 
+    alert(`OTP sent to +91-${formData.mobile}\n\nYour OTP: ${fakeOtp}`);
   };
 
   const handleVerifyOtp = () => {
-    if (otp === generatedOtp) {
+    if (otp === "1234") {
       setIsVerified(true);
       setErrors(prev => ({ ...prev, otp: '' }));
       alert('✓ Mobile number verified successfully!');
     } else {
-      setErrors(prev => ({ ...prev, otp: 'Invalid OTP. Please try again.' }));
+      setErrors(prev => ({ ...prev, otp: 'Invalid OTP. Please try 1234.' }));
     }
   };
 
@@ -152,40 +159,66 @@ export default function GrievanceForm() {
     }
   };
 
-  const handleSubmit = () => {
+  // --- THE CONNECTED SUBMIT FUNCTION ---
+  const handleSubmit = async () => {
     if (validateStep2()) {
-      const id = 'GRV' + Date.now().toString().slice(-8);
-      setTrackingId(id);
-      setIsSubmitted(true);
-      window.scrollTo(0, 0);
+      setIsLoading(true);
+
+      try {
+        // 1. Send Data to Node.js Server
+        const response = await fetch('http://localhost:3001/api/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            citizenName: formData.fullName,
+            description: formData.description,
+            // We can send extra data too if the backend supports it, 
+            // but for now we send the core fields needed for AI
+          }),
+        });
+
+        const data = await response.json();
+        
+        // 2. Handle AI Response
+        if (data.data) {
+          setAiResult(data.data); // Capture the AI Category & Priority
+          setTrackingId(data.data._id || 'GRV' + Date.now().toString().slice(-8));
+        } else {
+          // Fallback if backend is weird but connected
+          setTrackingId('OFFLINE-' + Date.now().toString().slice(-8));
+        }
+        
+        setIsSubmitted(true);
+        window.scrollTo(0, 0);
+
+      } catch (error) {
+        console.error("Backend Error:", error);
+        // Fallback for Demo purposes (if server is down)
+        alert("Server is offline. Switching to Demo Mode.");
+        setTrackingId('DEMO-' + Date.now().toString().slice(-8));
+        setIsSubmitted(true);
+      }
+      setIsLoading(false);
     }
   };
 
   const handleNewGrievance = () => {
     setStep(1);
     setFormData({
-      fullName: '',
-      email: '',
-      mobile: '',
-      aadhaar: '',
-      address: '',
-      pincode: '',
-      department: '',
-      priority: '',
-      subject: '',
-      description: '',
-      incidentDate: '',
-      fileAttached: false,
-      fileName: ''
+      fullName: '', email: '', mobile: '', aadhaar: '', address: '', pincode: '',
+      department: '', priority: '', subject: '', description: '', incidentDate: '',
+      fileAttached: false, fileName: ''
     });
     setOtp('');
     setGeneratedOtp('');
     setIsOtpSent(false);
     setIsVerified(false);
     setIsSubmitted(false);
+    setAiResult(null);
     setErrors({});
   };
 
+  // --- SUCCESS SCREEN (WITH AI RESULT) ---
   if (isSubmitted) {
     return (
       <div className="container">
@@ -196,13 +229,29 @@ export default function GrievanceForm() {
             </div>
           </div>
           <h1 className="success-title">Grievance Registered Successfully!</h1>
-          <p className="success-subtitle">Your complaint has been recorded in our system</p>
           
           <div className="tracking-card">
             <div className="tracking-label">Your Tracking ID</div>
             <div className="tracking-number">{trackingId}</div>
-            <div className="tracking-info">Save this ID to track your grievance status</div>
+            <div className="tracking-info">Save this ID to track status</div>
           </div>
+
+          {/* AI ANALYSIS DISPLAY */}
+          {aiResult && (
+             <div style={{
+               background: '#f0fdf4', 
+               border: '2px solid #bbf7d0', 
+               borderRadius: '12px', 
+               padding: '20px',
+               marginBottom: '30px',
+               textAlign: 'left'
+             }}>
+               <h3 style={{color: '#166534', marginTop:0}}>🤖 AI Analysis Complete</h3>
+               <p><strong>Category Detected:</strong> {aiResult.category}</p>
+               <p><strong>Priority Assigned:</strong> {aiResult.priority}</p>
+               <p style={{fontSize: '0.9rem', color: '#14532d'}}><strong>Summary:</strong> {aiResult.aiSummary}</p>
+             </div>
+          )}
 
           <div className="info-grid">
             <div className="info-item">
@@ -241,6 +290,7 @@ export default function GrievanceForm() {
     );
   }
 
+  // --- MAIN FORM RENDER ---
   return (
     <div className="container">
       <div className="portal-header">
@@ -280,7 +330,7 @@ export default function GrievanceForm() {
                   type="text"
                   name="fullName"
                   value={formData.fullName}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   placeholder="As per Government ID"
                   className={errors.fullName ? 'error' : ''}
                 />
@@ -293,7 +343,7 @@ export default function GrievanceForm() {
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   placeholder="your.email@example.com"
                   className={errors.email ? 'error' : ''}
                 />
@@ -309,7 +359,7 @@ export default function GrievanceForm() {
                   type="tel"
                   name="mobile"
                   value={formData.mobile}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   placeholder="10-digit mobile number"
                   maxLength="10"
                   disabled={isVerified}
@@ -336,7 +386,7 @@ export default function GrievanceForm() {
                       type="text"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter 4-digit OTP"
+                      placeholder="Enter 1234"
                       maxLength="4"
                       className={errors.otp ? 'error' : ''}
                     />
@@ -366,7 +416,7 @@ export default function GrievanceForm() {
                   type="text"
                   name="aadhaar"
                   value={formData.aadhaar}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   placeholder="12-digit Aadhaar"
                   maxLength="12"
                   className={errors.aadhaar ? 'error' : ''}
@@ -380,7 +430,7 @@ export default function GrievanceForm() {
                   type="text"
                   name="pincode"
                   value={formData.pincode}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   placeholder="6-digit pincode"
                   maxLength="6"
                   className={errors.pincode ? 'error' : ''}
@@ -394,7 +444,7 @@ export default function GrievanceForm() {
               <textarea
                 name="address"
                 value={formData.address}
-                onChange={(e) => handleInputChange(e.target)}
+                onChange={handleInputChange}
                 placeholder="House No., Street, Locality, City, State"
                 rows="3"
                 className={errors.address ? 'error' : ''}
@@ -421,7 +471,7 @@ export default function GrievanceForm() {
                 <select
                   name="department"
                   value={formData.department}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   className={errors.department ? 'error' : ''}
                 >
                   {departments.map(dept => (
@@ -436,7 +486,7 @@ export default function GrievanceForm() {
                 <select
                   name="priority"
                   value={formData.priority}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   className={errors.priority ? 'error' : ''}
                 >
                   {priorities.map(pri => (
@@ -454,7 +504,7 @@ export default function GrievanceForm() {
                   type="text"
                   name="subject"
                   value={formData.subject}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   placeholder="Brief summary of your grievance"
                   className={errors.subject ? 'error' : ''}
                 />
@@ -467,7 +517,7 @@ export default function GrievanceForm() {
                   type="date"
                   name="incidentDate"
                   value={formData.incidentDate}
-                  onChange={(e) => handleInputChange(e.target)}
+                  onChange={handleInputChange}
                   max={new Date().toISOString().split('T')[0]}
                   className={errors.incidentDate ? 'error' : ''}
                 />
@@ -480,7 +530,7 @@ export default function GrievanceForm() {
               <textarea
                 name="description"
                 value={formData.description}
-                onChange={(e) => handleInputChange(e.target)}
+                onChange={handleInputChange}
                 placeholder="Describe your grievance in detail (minimum 50 characters)..."
                 rows="6"
                 className={errors.description ? 'error' : ''}
@@ -512,8 +562,12 @@ export default function GrievanceForm() {
               <button onClick={() => setStep(1)} className="btn-secondary btn-large">
                 ← Back
               </button>
-              <button onClick={handleSubmit} className="btn-primary btn-large">
-                Submit Grievance
+              <button 
+                onClick={handleSubmit} 
+                className="btn-primary btn-large"
+                disabled={isLoading}
+              >
+                {isLoading ? "Analyzing & Submitting..." : "Submit Grievance"}
               </button>
             </div>
           </div>

@@ -1,16 +1,94 @@
-# React + Vite
+# GFBGQ – Team The Sirens 🚨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🧩 Problem Statement
+**AI for Grievance Redressal in Public Governance**
 
-Currently, two official plugins are available:
+Public authorities receive thousands of citizen grievances daily. Manual processing leads to delays, poor prioritization, and lack of transparency. This project aims to automate grievance handling using AI to improve efficiency and citizen satisfaction.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🏷️ Project Name
+**Smart Grievance AI – National Grievance Portal**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 👩‍💻 Team Name
+**The Sirens**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Team Members
+- Nishtha Lalwani (Team Lead & Backend)
+- Ruhani Grover (Frontend & Documentation)
+- Srijan (Frontend / Support)
+
+---
+
+## 💡 Project Overview
+Smart Grievance AI is a full-stack GovTech solution that allows citizens to register grievances through a secure, OTP-verified portal.  
+The system uses AI to analyze grievance text, identify the category and urgency, and assist government officials in faster redressal.
+
+---
+
+## ✨ Key Features
+- OTP-based citizen verification (UI demo)
+- Structured grievance submission form
+- AI-powered grievance analysis (Google Gemini API)
+- Automatic categorization & prioritization
+- Admin-ready backend architecture
+- Clean, government-style responsive UI
+
+---
+
+## 🧱 Tech Stack
+
+### Frontend
+- React.js (Vite)
+- CSS (Govt-style responsive design)
+
+### Backend
+- Node.js
+- Express.js
+
+### Database
+- MongoDB
+
+### AI Integration
+- Google Gemini API (Text Analysis)
+
+---
+
+## 🏗️ System Architecture
+1. Citizen submits grievance via web portal
+2. OTP verification ensures authenticity
+3. AI analyzes complaint text
+4. Grievance is categorized & prioritized
+5. Stored in MongoDB for admin review
+
+---
+
+## 🔗 Deployed Link
+_Not deployed yet_
+
+---
+
+## 🎥 2-minute Demonstration Video
+_Will be updated_
+
+---
+
+## 📊 Admin Dashboard
+(Planned)
+- View grievances
+- Filter by category & priority
+- Faster decision-making for authorities
+
+---
+
+## 🚀 Future Enhancements
+- Real OTP integration
+- Role-based admin access
+- Status tracking for citizens
+- Analytics dashboard for government bodies
+
+---
+
+©️ 2026 Smart Grievance AI | Public Governance
