@@ -13,10 +13,10 @@ app.use(cors());
 const MONGO_URL = "mongodb+srv://admin:***REMOVED***@nishtha.dg0dgkd.mongodb.net/?appName=nishtha"; 
 
 // PASTE YOUR GEMINI API KEY HERE
-const genAI = new GoogleGenerativeAI("AIzaSyCMDPMtrfPvQhhkDDx0DT4DNxN_kdtyka8");
-const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-
-// --- DATABASE MODEL ---
+const genAI = new GoogleGenerativeAI("AIzaSyArgCIlg-MNNljMe0paqJIrWCWXGcTOTe0");
+// NEW (Working):
+// This alias is safer because it auto-selects the working version
+const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 const GrievanceSchema = new mongoose.Schema({
   citizenName: String,
   description: String,
