@@ -77,6 +77,23 @@ app.get('/api/grievances', async (req, res) => {
   res.json(grievances);
 });
 
+// --- GET SINGLE GRIEVANCE BY ID (For Tracking) ---
+app.get('/api/grievance/:id', async (req, res) => {
+  try {
+    const grievance = await Grievance.findById(req.params.id);
+    if (!grievance) {
+      return res.status(404).json({ message: 'Grievance not found. Please check your tracking number.' });
+    }
+    res.json(grievance);
+  } catch (error) {
+    // Handle invalid ObjectId format
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid tracking number format.' });
+    }
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+});
+
 app.listen(3001, () => {
   console.log("Server running on port 3001");
 });

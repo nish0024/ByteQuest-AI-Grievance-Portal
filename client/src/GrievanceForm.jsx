@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 export default function GrievanceForm() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Personal Info
@@ -281,7 +283,7 @@ export default function GrievanceForm() {
             <button onClick={handleNewGrievance} className="btn-secondary">
               File Another Grievance
             </button>
-            <button onClick={() => alert('Track feature coming soon!')} className="btn-primary">
+            <button onClick={() => navigate('/track')} className="btn-primary">
               Track Status
             </button>
           </div>
