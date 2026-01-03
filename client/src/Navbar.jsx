@@ -15,7 +15,11 @@ export default function Navbar() {
       zIndex: 100
     }}>
       <div style={{ fontWeight: '800', fontSize: '20px', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span>🇮🇳</span> CivicPulse
+        <img 
+          src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png" 
+          alt="India Flag" 
+          style={{ width: '28px', height: '19px', objectFit: 'cover', borderRadius: '2px' }}
+        /> CivicPulse
       </div>
       <div style={{ display: 'flex', gap: '24px' }}>
         <Link to="/" style={{ textDecoration: 'none', color: '#64748b', fontWeight: '500' }}>File Grievance</Link>

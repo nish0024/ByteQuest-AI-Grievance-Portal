@@ -58,7 +58,11 @@ export default function TrackRequest() {
     <div className="container">
       <div className="portal-header">
         <div className="portal-logo">
-          <div className="logo-icon">🇮🇳</div>
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png" 
+            alt="India Flag" 
+            style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+          />
           <div className="logo-text">
             <h1>Track Your Grievance</h1>
             <p>National Grievance Portal - Government of India</p>

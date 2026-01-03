@@ -297,7 +297,11 @@ export default function GrievanceForm() {
     <div className="container">
       <div className="portal-header">
         <div className="portal-logo">
-          <div className="logo-icon">🇮🇳</div>
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png" 
+            alt="India Flag" 
+            style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+          />
           <div className="logo-text">
             <h1>National Grievance Portal</h1>
             <p>Government of India</p>
@@ -454,8 +458,11 @@ export default function GrievanceForm() {
               {errors.address && <span className="error-text">{errors.address}</span>}
             </div>
 
-            <div className="form-actions">
-              <button onClick={handleNext} className="btn-primary btn-large">
+            <div className="form-actions" style={{ display: 'flex', gap: '16px' }}>
+              <button onClick={() => navigate('/')} className="btn-secondary btn-large" style={{ flex: 1 }}>
+                ← Back to Home
+              </button>
+              <button onClick={handleNext} className="btn-primary btn-large" style={{ flex: 1 }}>
                 Continue to Grievance Details →
               </button>
             </div>

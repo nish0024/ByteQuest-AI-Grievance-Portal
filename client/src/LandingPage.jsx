@@ -6,19 +6,46 @@ export default function LandingPage() {
 
   return (
     <div className="container">
-      <div className="portal-header">
+      <div className="portal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="portal-logo">
-          <div className="logo-icon">🇮🇳</div>
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png" 
+            alt="India Flag" 
+            style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+          />
           <div className="logo-text">
             <h1>National Grievance Portal</h1>
             <p>Government of India - Citizen Services</p>
           </div>
         </div>
+        <button 
+          onClick={() => navigate('/admin')}
+          style={{
+            background: 'white',
+            border: 'none',
+            color: '#1e40af',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '700',
+            fontSize: '14px',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f1f5f9';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
+          }}
+        >
+          Admin Login
+        </button>
       </div>
 
       <div className="form-card">
-        <div className="form-section">
-          <div className="section-header" style={{ textAlign: 'center', borderBottom: 'none' }}>
+        <div className="form-section" style={{ padding: '24px 40px' }}>
+          <div className="section-header" style={{ textAlign: 'center', borderBottom: 'none', marginBottom: '16px', paddingBottom: '8px' }}>
             <h1>Welcome to the Portal</h1>
             <br></br>
             <h4>Your voice matters. We are here to help resolve your concerns efficiently.</h4>
