@@ -1,94 +1,41 @@
-# GFBGQ – Team The Sirens 🚨
+🚀 ByteQuest Hackathon 2026: AI-Powered Grievance Portal
+Team Name: The Sirens
 
-## 🧩 Problem Statement
-**AI for Grievance Redressal in Public Governance**
+Team Lead: Nishtha Lalwani
 
-Public authorities receive thousands of citizen grievances daily. Manual processing leads to delays, poor prioritization, and lack of transparency. This project aims to automate grievance handling using AI to improve efficiency and citizen satisfaction.
+Team Members: Srijan Sharma, Ruhani Grover
 
----
+🌟 Project Overview
+This repository contains a comprehensive MERN-stack solution for modern governance, developed in under 24 hours during the ByteQuest Hackathon. The platform bridges the gap between citizens and municipal authorities by using Google Gemini AI to automate the triage of public grievances.
 
-## 🏷️ Project Name
-**Smart Grievance AI – National Grievance Portal**
+Key Technical Achievements
+AI-Automated Summarization: Integrated the Gemini Flash API to process raw citizen descriptions and generate concise, 1-sentence action items for administrators (e.g., transforming a long complaint into: "Power instability impacting student productivity").
 
----
+Full-Stack Synchronization: Resolved critical connectivity and CORS issues by re-engineering the backend infrastructure to run on a unified Port 5000 system.
 
-## 👩‍💻 Team Name
-**The Sirens**
+Robust Error Handling: Debugged high-priority UI crashes and mapping logic, ensuring a stable "Live Demo" state even under heavy data loads.
 
-### Team Members
-- Nishtha Lalwani (Team Lead & Backend)
-- Ruhani Grover (Frontend & Documentation)
-- Srijan (Frontend / Support)
+Complete Citizen-to-Admin Lifecycle: Built a seamless flow including a dynamic Landing Page, an AI-validated Grievance Form, real-time Status Tracking, and an Admin Dashboard.
 
----
+🛠️ The Tech Stack
+Frontend: React.js, Vite, Tailwind CSS
 
-## 💡 Project Overview
-Smart Grievance AI is a full-stack GovTech solution that allows citizens to register grievances through a secure, OTP-verified portal.  
-The system uses AI to analyze grievance text, identify the category and urgency, and assist government officials in faster redressal.
+Backend: Node.js, Express.js
 
----
+Database: MongoDB Atlas (Cloud)
 
-## ✨ Key Features
-- OTP-based citizen verification (UI demo)
-- Structured grievance submission form
-- AI-powered grievance analysis (Google Gemini API)
-- Automatic categorization & prioritization
-- Admin-ready backend architecture
-- Clean, government-style responsive UI
+AI Layer: Google Generative AI (Gemini Flash API)
 
----
+📊 Technical Challenges Resolved
+As the Team Lead, I navigated several "critical path" technical challenges to ensure project delivery:
 
-## 🧱 Tech Stack
+Interface Stability: Resolved a broken dashboard caused by undefined styles and mapping logic before the final deadline.
 
-### Frontend
-- React.js (Vite)
-- CSS (Govt-style responsive design)
+Infrastructure Migration: Unified the client-server communication architecture to eliminate connectivity blocks and internal server errors.
 
-### Backend
-- Node.js
-- Express.js
-
-### Database
-- MongoDB
-
-### AI Integration
-- Google Gemini API (Text Analysis)
-
----
-
-## 🏗️ System Architecture
-1. Citizen submits grievance via web portal
-2. OTP verification ensures authenticity
-3. AI analyzes complaint text
-4. Grievance is categorized & prioritized
-5. Stored in MongoDB for admin review
-
----
-
-## 🔗 Deployed Link
-_Not deployed yet_
-
----
+Data Integrity: Implemented a custom seed script to ensure the dashboard showcased realistic, high-priority municipal cases for the final evaluation.
 
 ## 🎥 2-minute Demonstration Video
-_Will be updated_
+(https://drive.google.com/file/d/18y9mMl5JG7jzAZJm6BnCYJw5oEtGThJo/view?usp=drive_link)
 
----
-
-## 📊 Admin Dashboard
-(Planned)
-- View grievances
-- Filter by category & priority
-- Faster decision-making for authorities
-
----
-
-## 🚀 Future Enhancements
-- Real OTP integration
-- Role-based admin access
-- Status tracking for citizens
-- Analytics dashboard for government bodies
-
----
-
-©️ 2026 Smart Grievance AI | Public Governance
+The deployed application link will be added once deployment is completed.
