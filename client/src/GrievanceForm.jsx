@@ -168,7 +168,7 @@ export default function GrievanceForm() {
 
       try {
         // 1. Send Data to Node.js Server
-        const response = await fetch('http://localhost:5000/api/report', {
+        const response = await fetch('https://bytequest-portal-backend.onrender.com', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

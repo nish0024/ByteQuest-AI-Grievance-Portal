@@ -39,7 +39,7 @@ export default function TrackRequest() {
 
     try {
       // UPDATED: Changed from 3001 to 5000 to match your final server port
-      const response = await fetch(`http://localhost:5000/api/grievance/${trackingId}`);
+      const response = await fetch(`https://bytequest-portal-backend.onrender.com`);
       const data = await response.json();
 
       if (response.ok && data) {
