@@ -148,50 +148,52 @@ export default function AdminBackup() {
 
       {/* Main Content */}
       <div style={styles.mainContent}>
-        {/* Welcome Section */}
+        {/* Welcome Section with Stats */}
         <div style={styles.welcomeCard}>
-          <div>
-            <h2 style={styles.welcomeTitle}>Welcome, Administrator</h2>
-            <p style={styles.welcomeText}>Monitor and manage citizen grievances in real-time</p>
-          </div>
-          {error && (
-            <div style={styles.errorBadge}>
-              ⚠️ Demo Mode - {error}
+          <div style={styles.welcomeHeader}>
+            <div>
+              <h2 style={styles.welcomeTitle}>Welcome, Administrator</h2>
+              <p style={styles.welcomeText}>Monitor and manage citizen grievances in real-time</p>
             </div>
-          )}
-        </div>
-
-        {/* Stats Grid */}
-        <div style={styles.statsGrid}>
-          <div style={{...styles.statCard, ...styles.statCardTotal}}>
-            <div style={styles.statIcon}>📊</div>
-            <div style={styles.statContent}>
-              <div style={styles.statNumber}>{stats.total}</div>
-              <div style={styles.statLabel}>Total Grievances</div>
-            </div>
+            {error && (
+              <div style={styles.errorBadge}>
+                ⚠️ Demo Mode - {error}
+              </div>
+            )}
           </div>
-
-          <div style={{...styles.statCard, ...styles.statCardPending}}>
-            <div style={styles.statIcon}>⏳</div>
-            <div style={styles.statContent}>
-              <div style={styles.statNumber}>{stats.pending}</div>
-              <div style={styles.statLabel}>Pending Review</div>
+          
+          {/* Stats Grid - Now inside welcome card */}
+          <div style={styles.statsGrid}>
+            <div style={{...styles.statCard, ...styles.statCardTotal}}>
+              <div style={styles.statIcon}>📊</div>
+              <div style={styles.statContent}>
+                <div style={styles.statNumber}>{stats.total}</div>
+                <div style={styles.statLabel}>Total Grievances</div>
+              </div>
             </div>
-          </div>
 
-          <div style={{...styles.statCard, ...styles.statCardProgress}}>
-            <div style={styles.statIcon}>⚙️</div>
-            <div style={styles.statContent}>
-              <div style={styles.statNumber}>{stats.inProgress}</div>
-              <div style={styles.statLabel}>In Progress</div>
+            <div style={{...styles.statCard, ...styles.statCardPending}}>
+              <div style={styles.statIcon}>⏳</div>
+              <div style={styles.statContent}>
+                <div style={styles.statNumber}>{stats.pending}</div>
+                <div style={styles.statLabel}>Pending Review</div>
+              </div>
             </div>
-          </div>
 
-          <div style={{...styles.statCard, ...styles.statCardResolved}}>
-            <div style={styles.statIcon}>✓</div>
-            <div style={styles.statContent}>
-              <div style={styles.statNumber}>{stats.resolved}</div>
-              <div style={styles.statLabel}>Resolved</div>
+            <div style={{...styles.statCard, ...styles.statCardProgress}}>
+              <div style={styles.statIcon}>⚙️</div>
+              <div style={styles.statContent}>
+                <div style={styles.statNumber}>{stats.inProgress}</div>
+                <div style={styles.statLabel}>In Progress</div>
+              </div>
+            </div>
+
+            <div style={{...styles.statCard, ...styles.statCardResolved}}>
+              <div style={styles.statIcon}>✓</div>
+              <div style={styles.statContent}>
+                <div style={styles.statNumber}>{stats.resolved}</div>
+                <div style={styles.statLabel}>Resolved</div>
+              </div>
             </div>
           </div>
         </div>
@@ -413,10 +415,14 @@ const styles = {
     borderRadius: '16px',
     padding: '32px',
     marginBottom: '32px',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+  },
+  
+  welcomeHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+    marginBottom: '24px',
   },
   
   welcomeTitle: {
@@ -444,19 +450,19 @@ const styles = {
   
   statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '24px',
-    marginBottom: '32px',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '20px',
   },
   
   statCard: {
-    background: 'white',
+    background: '#f1f5f9',
     borderRadius: '16px',
     padding: '28px',
     display: 'flex',
     alignItems: 'center',
     gap: '20px',
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    border: '1px solid #e2e8f0',
     borderLeft: '5px solid',
     transition: 'all 0.3s',
   },
