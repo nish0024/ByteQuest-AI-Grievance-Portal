@@ -19,8 +19,27 @@ export default function TrackRequest() {
     setError('');
     setGrievance(null);
 
+    // --- NEW: DEMO MODE FOR HACKATHON PRESENTATION ---
+    if (trackingId.toUpperCase() === 'DEMO') {
+      setTimeout(() => {
+        setGrievance({
+          _id: 'DEMO-X12345678',
+          citizenName: 'Nishtha Lalwani',
+          category: 'Infrastructure',
+          priority: 'high',
+          status: 'in-progress',
+          createdAt: new Date().toISOString(),
+          description: 'Significant road damage reported near the main market square, affecting local traffic and safety.',
+          aiSummary: 'AI identifies this as a high-priority public safety issue requiring municipal attention.'
+        });
+        setIsLoading(false);
+      }, 800);
+      return;
+    }
+
     try {
-      const response = await fetch(`http://localhost:3001/api/grievance/${trackingId}`);
+      // UPDATED: Changed from 3001 to 5000 to match your final server port
+      const response = await fetch(`http://localhost:5000/api/grievance/${trackingId}`);
       const data = await response.json();
 
       if (response.ok && data) {
@@ -30,7 +49,8 @@ export default function TrackRequest() {
       }
     } catch (err) {
       console.error('Track Error:', err);
-      setError('Unable to connect to server. Please try again later.');
+      // Added port reminder for debugging
+      setError('Unable to connect to server. Ensure backend is running on Port 5000.');
     }
 
     setIsLoading(false);
@@ -39,14 +59,16 @@ export default function TrackRequest() {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'resolved': return '#10b981';
-      case 'in progress': return '#f59e0b';
-      case 'pending': return '#ef4444';
+      case 'in-progress': 
+      case 'in progress': return '#3b82f6'; // Match Dashboard Blue
+      case 'pending': return '#f59e0b'; // Match Dashboard Amber
       default: return '#6b7280';
     }
   };
 
   const getPriorityBadge = (priority) => {
     switch (priority?.toLowerCase()) {
+      case 'critical':
       case 'high': return { bg: '#fef2f2', color: '#dc2626', label: '🔴 High' };
       case 'medium': return { bg: '#fffbeb', color: '#d97706', label: '🟡 Medium' };
       case 'low': return { bg: '#f0fdf4', color: '#16a34a', label: '🟢 Low' };
@@ -87,7 +109,7 @@ export default function TrackRequest() {
                   setTrackingId(e.target.value);
                   setError('');
                 }}
-                placeholder="Enter your tracking ID (e.g., 67890abcdef12345)"
+                placeholder="Enter Tracking ID (or 'DEMO')"
                 style={{ flex: 1 }}
                 onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
               />
@@ -125,7 +147,7 @@ export default function TrackRequest() {
                     fontSize: '14px',
                     fontWeight: '600'
                   }}>
-                    {grievance.status || 'Pending'}
+                    {grievance.status?.toUpperCase() || 'PENDING'}
                   </div>
                 </div>
 
@@ -184,7 +206,7 @@ export default function TrackRequest() {
                 )}
               </div>
 
-              {/* Timeline */}
+              {/* Timeline Section */}
               <div style={{ 
                 background: 'white', 
                 borderRadius: '16px', 
@@ -262,7 +284,7 @@ export default function TrackRequest() {
             <button onClick={() => navigate('/')} className="btn-secondary">
               ← Back to Home
             </button>
-            <button onClick={() => navigate('/file-grievance')} className="btn-primary">
+            <button onClick={() => navigate('/report')} className="btn-primary">
               File New Grievance
             </button>
           </div>
