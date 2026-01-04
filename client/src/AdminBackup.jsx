@@ -15,7 +15,7 @@ export default function AdminBackup() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:3001/api/grievances');
+      const response = await fetch('http://localhost:5000/api/grievances');
       if (!response.ok) throw new Error('Failed to fetch data');
       const data = await response.json();
       setGrievances(data);
