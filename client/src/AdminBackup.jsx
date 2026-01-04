@@ -81,19 +81,19 @@ export default function AdminBackup() {
 
   const stats = {
     total: grievances.length,
-    pending: grievances.filter(g => g.status === 'pending').length,
-    inProgress: grievances.filter(g => g.status === 'in-progress').length,
-    resolved: grievances.filter(g => g.status === 'resolved').length,
-    critical: grievances.filter(g => g.priority === 'critical').length
+    pending: grievances.filter(g => g.status?.toLowerCase() === 'pending').length,
+    inProgress: grievances.filter(g => g.status?.toLowerCase() === 'in-progress').length,
+    resolved: grievances.filter(g => g.status?.toLowerCase() === 'resolved').length,
+    critical: grievances.filter(g => g.priority?.toLowerCase() === 'critical').length
   };
 
   const filteredGrievances = grievances.filter(g => {
-    const matchesFilter = filter === 'all' || g.status === filter;
+    const matchesFilter = filter === 'all' || g.status?.toLowerCase() === filter;
     const matchesSearch = !searchTerm || 
-      g.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.location.toLowerCase().includes(searchTerm.toLowerCase());
+      (g._id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (g.citizenName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (g.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (g.aiSummary || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -130,7 +130,11 @@ export default function AdminBackup() {
       {/* Top Header Bar */}
       <div style={styles.topBar}>
         <div style={styles.brandSection}>
-          <div style={styles.flag}>🇮🇳</div>
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png" 
+            alt="India Flag" 
+            style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+          />
           <div>
             <h1 style={styles.brandTitle}>National Grievance Portal</h1>
             <p style={styles.brandSubtitle}>Government of India - Admin Dashboard</p>
@@ -241,19 +245,19 @@ export default function AdminBackup() {
         ) : (
           <div style={styles.cardsGrid}>
             {filteredGrievances.map((grievance, index) => {
-              const priorityConfig = getPriorityConfig(grievance.priority);
-              const statusConfig = getStatusConfig(grievance.status);
+              const priorityConfig = getPriorityConfig(grievance.priority?.toLowerCase());
+              const statusConfig = getStatusConfig(grievance.status?.toLowerCase());
               
               return (
                 <div 
-                  key={grievance.id} 
+                  key={grievance._id} 
                   style={{
                     ...styles.grievanceCard,
                     animation: `slideIn 0.4s ease ${index * 0.05}s both`
                   }}
                 >
                   <div style={styles.cardHeader}>
-                    <div style={styles.cardId}>{grievance.id}</div>
+                    <div style={styles.cardId}>{grievance._id?.slice(-8).toUpperCase() || 'N/A'}</div>
                     <div style={{
                       ...styles.priorityBadge,
                       color: priorityConfig.color,
@@ -264,25 +268,25 @@ export default function AdminBackup() {
                   </div>
 
                   <div style={styles.cardBody}>
-                    <h3 style={styles.cardTitle}>{grievance.category}</h3>
-                    <p style={styles.cardDescription}>{grievance.description}</p>
+                    <h3 style={styles.cardTitle}>{grievance.category || 'Uncategorized'}</h3>
+                    <p style={styles.cardDescription}>{grievance.description || 'No description provided'}</p>
                     
                     <div style={styles.cardMeta}>
                       <div style={styles.metaItem}>
                         <span style={styles.metaIcon}>👤</span>
-                        <span>{grievance.name}</span>
+                        <span>{grievance.citizenName || 'Anonymous'}</span>
                       </div>
                       <div style={styles.metaItem}>
-                        <span style={styles.metaIcon}>📍</span>
-                        <span>{grievance.location}</span>
+                        <span style={styles.metaIcon}>📋</span>
+                        <span>{grievance.aiSummary || 'No summary available'}</span>
                       </div>
                       <div style={styles.metaItem}>
                         <span style={styles.metaIcon}>📅</span>
-                        <span>{new Date(grievance.date).toLocaleDateString('en-IN', {
+                        <span>{grievance.createdAt ? new Date(grievance.createdAt).toLocaleDateString('en-IN', {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric'
-                        })}</span>
+                        }) : 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -297,7 +301,7 @@ export default function AdminBackup() {
                     </div>
                     <button 
                       style={styles.actionBtn}
-                      onClick={() => alert(`Viewing details for ${grievance.id}`)}
+                      onClick={() => alert(`Viewing details for ${grievance._id}`)}
                     >
                       View Details →
                     </button>

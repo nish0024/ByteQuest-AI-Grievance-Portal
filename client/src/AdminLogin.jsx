@@ -262,7 +262,11 @@ export default function AdminLogin() {
         <div style={styles.card}>
           <div style={styles.header}>
             <div style={styles.brandContainer}>
-              <span style={styles.flag}>🇮🇳</span>
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png" 
+                alt="India Flag" 
+                style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+              />
               <h1 style={styles.title}>National Grievance Portal</h1>
             </div>
             <p style={styles.subtitle}>Government of India - Citizen Services</p>
