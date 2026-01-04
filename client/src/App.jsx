@@ -13,7 +13,7 @@ function App() {
         <Route path="/file-grievance" element={<GrievanceForm />} />
         <Route path="/track" element={<TrackRequest />} />
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );

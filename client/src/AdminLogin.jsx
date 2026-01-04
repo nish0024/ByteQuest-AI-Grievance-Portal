@@ -18,7 +18,7 @@ export default function AdminLogin() {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    if (email === 'admin@gov.in' && password === 'admin123') {
+    if (email === 'admin@gov.in' && password === 'admin321') {
       setSuccess(true);
       setLoading(false);
       setTimeout(() => {
@@ -373,7 +373,7 @@ export default function AdminLogin() {
           </form>
 
           <div style={styles.demoHint}>
-            Demo credentials: admin@gov.in / admin123
+            Demo credentials: admin@gov.in / admin321
           </div>
         </div>
       </div>
