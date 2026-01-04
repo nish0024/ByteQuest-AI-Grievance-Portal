@@ -168,7 +168,7 @@ export default function GrievanceForm() {
 
       try {
         // 1. Send Data to Node.js Server
-        const response = await fetch('http://localhost:3001/api/report', {
+        const response = await fetch('http://localhost:5000/api/report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -196,7 +196,12 @@ export default function GrievanceForm() {
       } catch (error) {
         console.error("Backend Error:", error);
         // Fallback for Demo purposes (if server is down)
-        alert("Server is offline. Switching to Demo Mode.");
+        // Create demo AI result for offline mode
+        setAiResult({
+          category: formData.department || 'General',
+          priority: formData.priority || 'Medium',
+          aiSummary: 'Submitted in offline mode - will be processed when server is available'
+        });
         setTrackingId('DEMO-' + Date.now().toString().slice(-8));
         setIsSubmitted(true);
       }

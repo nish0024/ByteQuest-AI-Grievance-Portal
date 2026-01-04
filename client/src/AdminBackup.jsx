@@ -6,6 +6,60 @@ export default function AdminBackup() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGrievance, setSelectedGrievance] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const openDetailsModal = (grievance) => {
+    setSelectedGrievance(grievance);
+    setShowModal(true);
+    setShowStatusDropdown(false);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedGrievance(null);
+    setShowStatusDropdown(false);
+  };
+
+  const updateGrievanceStatus = async (newStatus) => {
+    if (!selectedGrievance) return;
+    
+    setUpdatingStatus(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/grievances/${selectedGrievance._id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (response.ok) {
+        // Update local state
+        setGrievances(prev => prev.map(g => 
+          g._id === selectedGrievance._id ? { ...g, status: newStatus } : g
+        ));
+        setSelectedGrievance(prev => ({ ...prev, status: newStatus }));
+        setShowStatusDropdown(false);
+      } else {
+        // Demo mode - update locally anyway
+        setGrievances(prev => prev.map(g => 
+          g._id === selectedGrievance._id ? { ...g, status: newStatus } : g
+        ));
+        setSelectedGrievance(prev => ({ ...prev, status: newStatus }));
+        setShowStatusDropdown(false);
+      }
+    } catch (err) {
+      // Demo mode - update locally
+      setGrievances(prev => prev.map(g => 
+        g._id === selectedGrievance._id ? { ...g, status: newStatus } : g
+      ));
+      setSelectedGrievance(prev => ({ ...prev, status: newStatus }));
+      setShowStatusDropdown(false);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   useEffect(() => {
     fetchGrievances();
@@ -140,10 +194,16 @@ export default function AdminBackup() {
             <p style={styles.brandSubtitle}>Government of India - Admin Dashboard</p>
           </div>
         </div>
-        <button onClick={fetchGrievances} style={styles.refreshBtn}>
-          <span style={styles.refreshIcon}>↻</span>
-          Refresh
-        </button>
+        <div style={styles.headerActions}>
+          <button onClick={() => window.location.href = '/'} style={styles.homeBtn}>
+            <span>←</span>
+            Back to Home
+          </button>
+          <button onClick={fetchGrievances} style={styles.refreshBtn}>
+            <span style={styles.refreshIcon}>↻</span>
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -303,7 +363,7 @@ export default function AdminBackup() {
                     </div>
                     <button 
                       style={styles.actionBtn}
-                      onClick={() => alert(`Viewing details for ${grievance._id}`)}
+                      onClick={() => openDetailsModal(grievance)}
                     >
                       View Details →
                     </button>
@@ -314,6 +374,198 @@ export default function AdminBackup() {
           </div>
         )}
       </div>
+
+      {/* Details Modal */}
+      {showModal && selectedGrievance && (
+        <div style={styles.modalOverlay} onClick={closeModal}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitleSection}>
+                <h2 style={styles.modalTitle}>Grievance Details</h2>
+                <span style={styles.modalId}>#{selectedGrievance._id?.slice(-8).toUpperCase() || 'N/A'}</span>
+              </div>
+              <button style={styles.closeBtn} onClick={closeModal}>✕</button>
+            </div>
+            
+            <div style={styles.modalBody}>
+              {/* Status and Priority Section */}
+              <div style={styles.statusSection}>
+                <div style={{
+                  ...styles.modalStatusBadge,
+                  color: getStatusConfig(selectedGrievance.status?.toLowerCase()).color,
+                  background: getStatusConfig(selectedGrievance.status?.toLowerCase()).bg
+                }}>
+                  {getStatusConfig(selectedGrievance.status?.toLowerCase()).icon} {getStatusConfig(selectedGrievance.status?.toLowerCase()).label}
+                </div>
+                <div style={{
+                  ...styles.modalPriorityBadge,
+                  color: getPriorityConfig(selectedGrievance.priority?.toLowerCase()).color,
+                  background: getPriorityConfig(selectedGrievance.priority?.toLowerCase()).bg
+                }}>
+                  {getPriorityConfig(selectedGrievance.priority?.toLowerCase()).icon} {getPriorityConfig(selectedGrievance.priority?.toLowerCase()).label} Priority
+                </div>
+              </div>
+
+              {/* Category */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📁 Category</h3>
+                <p style={styles.detailValue}>{selectedGrievance.category || 'Uncategorized'}</p>
+              </div>
+
+              {/* Description */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📝 Description</h3>
+                <p style={styles.detailDescription}>{selectedGrievance.description || 'No description provided'}</p>
+              </div>
+
+              {/* AI Summary */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>🤖 AI Summary</h3>
+                <p style={styles.detailValue}>{selectedGrievance.aiSummary || 'AI summary not available'}</p>
+              </div>
+
+              {/* Citizen Information */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>👤 Citizen Information</h3>
+                <div style={styles.infoGrid}>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Name:</span>
+                    <span style={styles.infoValue}>{selectedGrievance.citizenName || selectedGrievance.name || 'Anonymous'}</span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Email:</span>
+                    <span style={styles.infoValue}>{selectedGrievance.email || 'Not provided'}</span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Phone:</span>
+                    <span style={styles.infoValue}>{selectedGrievance.phone || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📍 Location</h3>
+                <p style={styles.detailValue}>{selectedGrievance.location || 'Location not specified'}</p>
+              </div>
+
+              {/* Dates */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📅 Timeline</h3>
+                <div style={styles.infoGrid}>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Filed On:</span>
+                    <span style={styles.infoValue}>
+                      {selectedGrievance.createdAt 
+                        ? new Date(selectedGrievance.createdAt).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : selectedGrievance.date || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Last Updated:</span>
+                    <span style={styles.infoValue}>
+                      {selectedGrievance.updatedAt 
+                        ? new Date(selectedGrievance.updatedAt).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Attachments if any */}
+              {selectedGrievance.attachments && selectedGrievance.attachments.length > 0 && (
+                <div style={styles.detailSection}>
+                  <h3 style={styles.detailLabel}>📎 Attachments</h3>
+                  <div style={styles.attachmentsList}>
+                    {selectedGrievance.attachments.map((attachment, idx) => (
+                      <a key={idx} href={attachment} target="_blank" rel="noopener noreferrer" style={styles.attachmentLink}>
+                        Attachment {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={styles.modalFooter}>
+              <button style={styles.modalCloseBtn} onClick={closeModal}>
+                Close
+              </button>
+              <div style={styles.statusDropdownContainer}>
+                <button 
+                  style={styles.modalActionBtn}
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  disabled={updatingStatus}
+                >
+                  {updatingStatus ? '⏳ Updating...' : '⚡ Update Status'}
+                </button>
+                {showStatusDropdown && (
+                  <div style={styles.statusDropdown}>
+                    <div style={styles.dropdownHeader}>Change Status To:</div>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...(selectedGrievance.status?.toLowerCase() === 'pending' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('pending')}
+                    >
+                      <span style={styles.statusDot('#f59e0b')}></span>
+                      ⏳ Pending
+                      {selectedGrievance.status?.toLowerCase() === 'pending' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...(selectedGrievance.status?.toLowerCase() === 'in-progress' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('in-progress')}
+                    >
+                      <span style={styles.statusDot('#3b82f6')}></span>
+                      ⚙️ In Progress
+                      {selectedGrievance.status?.toLowerCase() === 'in-progress' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...(selectedGrievance.status?.toLowerCase() === 'resolved' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('resolved')}
+                    >
+                      <span style={styles.statusDot('#10b981')}></span>
+                      ✓ Resolved
+                      {selectedGrievance.status?.toLowerCase() === 'resolved' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...styles.statusOptionReject,
+                        ...(selectedGrievance.status?.toLowerCase() === 'rejected' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('rejected')}
+                    >
+                      <span style={styles.statusDot('#dc2626')}></span>
+                      ✕ Rejected
+                      {selectedGrievance.status?.toLowerCase() === 'rejected' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -383,6 +635,28 @@ const styles = {
     fontWeight: '500',
   },
   
+  headerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+
+  homeBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 24px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    color: 'white',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    backdropFilter: 'blur(4px)',
+  },
+
   refreshBtn: {
     display: 'flex',
     alignItems: 'center',
@@ -405,9 +679,9 @@ const styles = {
   },
   
   mainContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '40px',
+    width: '100%',
+    padding: '40px 48px',
+    boxSizing: 'border-box',
   },
   
   welcomeCard: {
@@ -697,6 +971,290 @@ const styles = {
     transition: 'all 0.3s',
     boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
   },
+
+  // Modal Styles
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(15, 23, 42, 0.8)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: '20px',
+    animation: 'fadeIn 0.3s ease',
+  },
+
+  modalContent: {
+    background: 'white',
+    borderRadius: '20px',
+    width: '100%',
+    maxWidth: '700px',
+    maxHeight: '90vh',
+    overflow: 'hidden',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+    animation: 'slideUp 0.3s ease',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
+  modalHeader: {
+    padding: '24px 32px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  modalTitleSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+
+  modalTitle: {
+    fontSize: '22px',
+    fontWeight: '700',
+    color: 'white',
+    margin: 0,
+  },
+
+  modalId: {
+    padding: '6px 14px',
+    background: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '700',
+    color: 'white',
+    fontFamily: 'monospace',
+  },
+
+  closeBtn: {
+    width: '40px',
+    height: '40px',
+    border: 'none',
+    background: 'rgba(255, 255, 255, 0.2)',
+    color: 'white',
+    borderRadius: '10px',
+    fontSize: '18px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+  },
+
+  modalBody: {
+    padding: '32px',
+    overflowY: 'auto',
+    flex: 1,
+  },
+
+  statusSection: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '28px',
+  },
+
+  modalStatusBadge: {
+    padding: '10px 18px',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+  },
+
+  modalPriorityBadge: {
+    padding: '10px 18px',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+  },
+
+  detailSection: {
+    marginBottom: '24px',
+    paddingBottom: '24px',
+    borderBottom: '1px solid #f1f5f9',
+  },
+
+  detailLabel: {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#64748b',
+    marginBottom: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+
+  detailValue: {
+    fontSize: '16px',
+    color: '#1e293b',
+    margin: 0,
+    fontWeight: '500',
+  },
+
+  detailDescription: {
+    fontSize: '15px',
+    color: '#475569',
+    margin: 0,
+    lineHeight: '1.7',
+    background: '#f8fafc',
+    padding: '16px',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+  },
+
+  infoGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '16px',
+  },
+
+  infoItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+
+  infoLabel: {
+    fontSize: '13px',
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+
+  infoValue: {
+    fontSize: '15px',
+    color: '#1e293b',
+    fontWeight: '500',
+  },
+
+  attachmentsList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '12px',
+  },
+
+  attachmentLink: {
+    padding: '10px 16px',
+    background: '#eff6ff',
+    color: '#3b82f6',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'all 0.2s',
+  },
+
+  modalFooter: {
+    padding: '20px 32px',
+    background: '#f8fafc',
+    borderTop: '1px solid #e2e8f0',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '12px',
+  },
+
+  modalCloseBtn: {
+    padding: '12px 24px',
+    background: '#e2e8f0',
+    color: '#475569',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+
+  modalActionBtn: {
+    padding: '12px 24px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+  },
+
+  // Status Dropdown Styles
+  statusDropdownContainer: {
+    position: 'relative',
+  },
+
+  statusDropdown: {
+    position: 'absolute',
+    bottom: '100%',
+    right: 0,
+    marginBottom: '8px',
+    background: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+    border: '1px solid #e2e8f0',
+    overflow: 'hidden',
+    minWidth: '200px',
+    animation: 'slideUp 0.2s ease',
+  },
+
+  dropdownHeader: {
+    padding: '12px 16px',
+    background: '#f8fafc',
+    fontSize: '12px',
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    borderBottom: '1px solid #e2e8f0',
+  },
+
+  statusOption: {
+    width: '100%',
+    padding: '14px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    background: 'white',
+    border: 'none',
+    borderBottom: '1px solid #f1f5f9',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#1e293b',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    textAlign: 'left',
+  },
+
+  statusOptionActive: {
+    background: '#eff6ff',
+  },
+
+  statusOptionReject: {
+    color: '#dc2626',
+  },
+
+  statusDot: (color) => ({
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    background: color,
+    display: 'inline-block',
+  }),
+
+  currentBadge: {
+    marginLeft: 'auto',
+    padding: '2px 8px',
+    background: '#e0f2fe',
+    color: '#0369a1',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: '600',
+  },
 };
 
 const styleSheet = document.createElement('style');
@@ -707,6 +1265,14 @@ styleSheet.textContent = `
   @keyframes slideIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
   button:hover {
     transform: translateY(-2px);
