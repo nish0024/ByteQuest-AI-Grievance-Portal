@@ -34,6 +34,7 @@ The system follows a modern full-stack architecture:
 4. **Database** - MongoDB Atlas for persistent storage of grievances and tracking
 5. **Tracking System** - Real-time grievance status tracking using unique tracking IDs
 
+
 ---
 
 ## Features
