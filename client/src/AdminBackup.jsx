@@ -28,7 +28,7 @@ export default function AdminBackup() {
     
     setUpdatingStatus(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/grievances/${selectedGrievance._id}/status`, {
+      const response = await fetch(`https://bytequest-portal-backend.onrender.com`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })

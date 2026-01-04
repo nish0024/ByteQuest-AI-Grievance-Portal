@@ -6,7 +6,11 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://byte-quest-ai-grievance-portal.vercel.app/', // Replace with your actual Vercel URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 // --- CONFIGURATION ---
 // PASTE YOUR MONGO URL HERE
