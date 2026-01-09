@@ -33,3 +33,4 @@ const fetchGrievances = async () => {
       setLoading(false);
     }
   } ;
+  export default AdminDashboard;
