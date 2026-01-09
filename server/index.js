@@ -1,38 +1,41 @@
-// --- 3. ROBUST CONNECTION LOGIC ---
-const startServer = async () => {
-  try {
-    if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI is missing from Environment Variables");
-    }
+const express = require('express');
+const mongoose = require('mongoose'); // <--- CRITICAL: Do not remove this
+const cors = require('cors');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
 
-    console.log("Attempting to connect to MongoDB Atlas...");
-    
-    // serverSelectionTimeoutMS: 5000 helps identify IP whitelist issues faster
-   // Change this line in your startServer function
-await mongoose.connect(process.env.MONGO_URI, { 
-  serverSelectionTimeoutMS: 5000 
-}).catch(err => {
-  console.error("DETAILED CONNECTION ERROR:", err.message);
-  throw err; 
+const app = express();
+app.use(express.json());
+
+// 1. CORS Setup
+app.use(cors({
+  origin: ["https://byte-quest-ai-grievance-portal.vercel.app", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  credentials: true
+}));
+
+// 2. Schema and Model
+const GrievanceSchema = new mongoose.Schema({
+  citizenName: String,
+  description: String,
+  category: String,
+  priority: String,
+  aiSummary: String,
+  status: { type: String, default: 'Pending' },
+  createdAt: { type: Date, default: Date.now }
 });
-    
-    console.log("✅ MongoDB Connected Successfully");
+const Grievance = mongoose.model('Grievance', GrievanceSchema);
 
-    // Render automatically assigns a PORT; 10000 is a common default
-    const PORT = process.env.PORT || 10000;
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
+// 3. Routes (Define these BEFORE startServer)
+app.get('/api/grievances', async (req, res) => {
+  try {
+    const grievances = await Grievance.find().sort({ createdAt: -1 });
+    res.json(grievances);
   } catch (err) {
-    console.error("❌ Startup Error:", err.message);
-    // Exiting with code 1 tells Render the service is unhealthy so it can retry
-    process.exit(1); 
+    res.status(500).json({ error: "Fetch failed" });
   }
-};
+});
 
-startServer();
-
-// Add this to your Backend index.js
 app.patch('/api/grievance/:id', async (req, res) => {
   try {
     const { status } = req.body;
@@ -47,3 +50,30 @@ app.patch('/api/grievance/:id', async (req, res) => {
     res.status(500).json({ error: "Update failed" });
   }
 });
+
+// 4. Robust Connection Logic
+const startServer = async () => {
+  try {
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is missing from Environment Variables");
+    }
+
+    console.log("Attempting to connect to MongoDB Atlas...");
+    
+    await mongoose.connect(process.env.MONGO_URI, { 
+      serverSelectionTimeoutMS: 5000 
+    });
+    
+    console.log("✅ MongoDB Connected Successfully");
+
+    const PORT = process.env.PORT || 10000;
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Startup Error:", err.message);
+    process.exit(1); 
+  }
+};
+
+startServer();
