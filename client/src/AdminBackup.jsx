@@ -24,15 +24,15 @@ export default function AdminBackup() {
   };
 
   const updateGrievanceStatus = async (newStatus) => {
-    if (!selectedGrievance) return;
-    
-    setUpdatingStatus(true);
-    try {
-      const response = await fetch(`https://bytequest-portal-backend.onrender.com`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
+  if (!selectedGrievance) return;
+  setUpdatingStatus(true);
+  try {
+    // ADD /api/grievance/${id}
+    const response = await fetch(`https://bytequest-portal-backend.onrender.com/api/grievance/${selectedGrievance._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
       
       if (response.ok) {
         // Update local state
@@ -66,15 +66,15 @@ export default function AdminBackup() {
   }, []);
 
   const fetchGrievances = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('https://bytequest-portal-backend.onrender.com');
-      if (!response.ok) throw new Error('Failed to fetch data');
-      const data = await response.json();
-      setGrievances(data);
-    } catch (err) {
-      setError('Unable to connect to server');
+  setLoading(true);
+  try {
+    // ADD /api/grievances TO THE END
+    const response = await fetch('https://bytequest-portal-backend.onrender.com/api/grievances');
+    if (!response.ok) throw new Error('Failed to fetch data');
+    const data = await response.json();
+    setGrievances(data);
+  } catch (err) {
+    setError('Unable to connect to server');
       // Demo data with enhanced fields
       setGrievances([
         {
