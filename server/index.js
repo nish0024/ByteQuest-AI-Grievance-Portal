@@ -8,9 +8,13 @@ const startServer = async () => {
     console.log("Attempting to connect to MongoDB Atlas...");
     
     // serverSelectionTimeoutMS: 5000 helps identify IP whitelist issues faster
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000 
-    });
+   // Change this line in your startServer function
+await mongoose.connect(process.env.MONGO_URI, { 
+  serverSelectionTimeoutMS: 5000 
+}).catch(err => {
+  console.error("DETAILED CONNECTION ERROR:", err.message);
+  throw err; 
+});
     
     console.log("✅ MongoDB Connected Successfully");
 
