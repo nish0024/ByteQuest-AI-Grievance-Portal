@@ -1,3 +1,4 @@
+export default function AdminBackup() { 
 const fetchGrievances = async () => {
     setLoading(true);
     setError(null);
@@ -32,4 +33,4 @@ const fetchGrievances = async () => {
     } finally {
       setLoading(false);
     }
-  };
+  }} ;

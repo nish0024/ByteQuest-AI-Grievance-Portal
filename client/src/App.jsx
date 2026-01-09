@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './LandingPage';
 import GrievanceForm from './GrievanceForm';
 import TrackRequest from './TrackRequest';
-import AdminDashboard from './AdminBackup';
+import AdminBackup from './AdminBackup';
 import AdminLogin from './AdminLogin';
 
 function App() {
