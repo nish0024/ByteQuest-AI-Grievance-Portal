@@ -7,20 +7,23 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: "https://byte-quest-ai-grievance-portal.vercel.app", // Your exact Vercel link
+  origin: "https://byte-quest-ai-grievance-portal.vercel.app", 
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
 // --- CONFIGURATION ---
-// PASTE YOUR MONGO URL HERE
-const MONGO_URL = "process.env.mongodb+srv://admin:n8oVx0ZCSLtANguO@nishtha.dg0dgkd.mongodb.net/?appName=nishtha"; 
+// We use process.env so your secrets stay safe in Render's settings
+const MONGO_URL = process.env.MONGO_URI; 
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
-// PASTE YOUR GEMINI API KEY HERE
-const genAI = new GoogleGenerativeAI("AIzaSyArgCIlg-MNNljMe0paqJIrWCWXGcTOTe0");
-// NEW (Working):
-// This alias is safer because it auto-selects the working version
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+if (MONGO_URL) {
+  console.log("DB URL detected. Connecting...");
+}
+
+const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 const GrievanceSchema = new mongoose.Schema({
   citizenName: String,
   description: String,
@@ -35,14 +38,13 @@ const Grievance = mongoose.model('Grievance', GrievanceSchema);
 // --- CONNECT TO DB ---
 mongoose.connect(MONGO_URL)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.error("MongoDB Connection Error:", err));
 
 // --- THE AI ROUTE ---
 app.post('/api/report', async (req, res) => {
   const { citizenName, description } = req.body;
 
   try {
-    // 1. Ask AI to analyze the complaint
     const prompt = `
       Analyze this grievance: "${description}".
       Respond ONLY with a JSON object (no markdown) in this format:
@@ -53,11 +55,9 @@ app.post('/api/report', async (req, res) => {
     const response = await result.response;
     const text = response.text();
     
-    // Clean up AI text to ensure it's valid JSON
     const jsonString = text.replace(/```json|```/g, '').trim(); 
     const aiData = JSON.parse(jsonString);
 
-    // 2. Save to Database
     const newGrievance = new Grievance({
       citizenName,
       description,
@@ -75,29 +75,28 @@ app.post('/api/report', async (req, res) => {
   }
 });
 
-// --- GET ALL GRIEVANCES (For Admin Dashboard) ---
 app.get('/api/grievances', async (req, res) => {
   const grievances = await Grievance.find().sort({ createdAt: -1 });
   res.json(grievances);
 });
 
-// --- GET SINGLE GRIEVANCE BY ID (For Tracking) ---
 app.get('/api/grievance/:id', async (req, res) => {
   try {
     const grievance = await Grievance.findById(req.params.id);
     if (!grievance) {
-      return res.status(404).json({ message: 'Grievance not found. Please check your tracking number.' });
+      return res.status(404).json({ message: 'Grievance not found.' });
     }
     res.json(grievance);
   } catch (error) {
-    // Handle invalid ObjectId format
     if (error.kind === 'ObjectId') {
       return res.status(400).json({ message: 'Invalid tracking number format.' });
     }
-    res.status(500).json({ message: 'Server error. Please try again later.' });
+    res.status(500).json({ message: 'Server error.' });
   }
 });
 
-app.listen(5000, "0.0.0.0", () => {
-  console.log("Server running on port 5000");
+// Use Render's assigned port or default to 5000 for local testing
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });

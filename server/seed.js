@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Your MongoDB URL
-const MONGO_URL = "process.env.mongodb+srv://admin:n8oVx0ZCSLtANguO@nishtha.dg0dgkd.mongodb.net/?appName=nishtha"; 
+const MONGO_URL = process.env.MONGO_URI; 
 
 const GrievanceSchema = new mongoose.Schema({
   citizenName: String,
