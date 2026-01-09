@@ -9,11 +9,21 @@ app.use(express.json());
 
 // 1. CORS Setup
 app.use(cors({
-  origin: [
-    "https://byte-quest-ai-grievance-portal.vercel.app",
-    /\.vercel\.app$/ // This allows all Vercel preview links
-  ],
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if the origin contains "vercel.app" or is "localhost"
+    const allowedPatterns = [/vercel\.app$/, /localhost:5173$/];
+    const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
   credentials: true
 }));
 // 2. Schema and Model
