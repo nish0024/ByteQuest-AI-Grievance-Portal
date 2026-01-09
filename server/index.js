@@ -27,3 +27,19 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Add this to your Backend index.js
+app.patch('/api/grievance/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updated = await Grievance.findByIdAndUpdate(
+      req.params.id, 
+      { status }, 
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ message: "Not found" });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
