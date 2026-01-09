@@ -9,11 +9,13 @@ app.use(express.json());
 
 // 1. CORS Setup
 app.use(cors({
-  origin: ["https://byte-quest-ai-grievance-portal.vercel.app", "http://localhost:5173"],
+  origin: [
+    "https://byte-quest-ai-grievance-portal.vercel.app",
+    /\.vercel\.app$/ // This allows all Vercel preview links
+  ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
 }));
-
 // 2. Schema and Model
 const GrievanceSchema = new mongoose.Schema({
   citizenName: String,
