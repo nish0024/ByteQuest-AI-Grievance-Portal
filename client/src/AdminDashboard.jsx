@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-const AdminDashboard = () => {
+export default function AdminDashboard() {
   const [grievances, setGrievances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,40 +11,21 @@ const AdminDashboard = () => {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  // --- API LOGIC FROM VERSION B (LIVE RENDER ENDPOINTS) ---
-  
-  const fetchGrievances = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('https://bytequest-portal-backend.onrender.com/api/grievances');
-      if (!response.ok) throw new Error(`Server status: ${response.status}`);
-      const data = await response.json();
-      setGrievances(data);
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      setError('Live server is connecting. Showing demo data...');
-      // Fallback Demo Data for UI Stability
-      setGrievances([
-        {
-          _id: 'GRV-DE-2026',
-          citizenName: 'Rajesh Kumar',
-          category: 'Water & Sanitation',
-          priority: 'critical',
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-          location: 'Indore, Madhya Pradesh',
-          description: 'No water supply for 3 days in Sector 21. Urgent action needed.',
-          aiSummary: 'Major infrastructure failure in residential sector.'
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
+  const openDetailsModal = (grievance) => {
+    setSelectedGrievance(grievance);
+    setShowModal(true);
+    setShowStatusDropdown(false);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedGrievance(null);
+    setShowStatusDropdown(false);
   };
 
   const updateGrievanceStatus = async (newStatus) => {
     if (!selectedGrievance) return;
+    
     setUpdatingStatus(true);
     try {
       const response = await fetch(`https://bytequest-portal-backend.onrender.com/api/grievances/${selectedGrievance._id}/status`, {
@@ -54,6 +35,14 @@ const AdminDashboard = () => {
       });
       
       if (response.ok) {
+        // Update local state
+        setGrievances(prev => prev.map(g => 
+          g._id === selectedGrievance._id ? { ...g, status: newStatus } : g
+        ));
+        setSelectedGrievance(prev => ({ ...prev, status: newStatus }));
+        setShowStatusDropdown(false);
+      } else {
+        // Demo mode - update locally anyway
         setGrievances(prev => prev.map(g => 
           g._id === selectedGrievance._id ? { ...g, status: newStatus } : g
         ));
@@ -61,8 +50,7 @@ const AdminDashboard = () => {
         setShowStatusDropdown(false);
       }
     } catch (err) {
-      console.error("Update failed:", err);
-      // Local update for UX if API fails during demo
+      // Demo mode - update locally
       setGrievances(prev => prev.map(g => 
         g._id === selectedGrievance._id ? { ...g, status: newStatus } : g
       ));
@@ -77,18 +65,82 @@ const AdminDashboard = () => {
     fetchGrievances();
   }, []);
 
-  // --- UI HELPERS FROM VERSION A ---
-
-  const openDetailsModal = (grievance) => {
-    setSelectedGrievance(grievance);
-    setShowModal(true);
-    setShowStatusDropdown(false);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedGrievance(null);
-    setShowStatusDropdown(false);
+  const fetchGrievances = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('https://bytequest-portal-backend.onrender.com/api/grievances');
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+      setGrievances(data);
+    } catch (err) {
+      setError('Unable to connect to server');
+      // Demo data with enhanced fields
+      setGrievances([
+        {
+          _id: 'GRV20260104',
+          citizenName: 'Rajesh Kumar',
+          category: 'Water & Sanitation',
+          priority: 'critical',
+          status: 'pending',
+          date: '2026-01-04',
+          location: 'Indore, Madhya Pradesh',
+          description: 'No water supply for 3 days in Sector 21. Urgent action needed.',
+          aiSummary: 'Infrastructure failure in water supply system',
+          createdAt: '2026-01-04T10:30:00Z'
+        },
+        {
+          _id: 'GRV20260103',
+          citizenName: 'Priya Sharma',
+          category: 'Road & Transport',
+          priority: 'high',
+          status: 'in-progress',
+          date: '2026-01-03',
+          location: 'Mumbai, Maharashtra',
+          description: 'Large pothole causing accidents on Western Express Highway',
+          aiSummary: 'Road maintenance issue requiring immediate attention',
+          createdAt: '2026-01-03T14:20:00Z'
+        },
+        {
+          _id: 'GRV20260102',
+          citizenName: 'Amit Patel',
+          category: 'Electricity Board',
+          priority: 'medium',
+          status: 'resolved',
+          date: '2026-01-02',
+          location: 'Delhi, Delhi',
+          description: 'Street light not working near bus stop',
+          aiSummary: 'Public safety concern resolved',
+          createdAt: '2026-01-02T09:15:00Z'
+        },
+        {
+          _id: 'GRV20260101',
+          citizenName: 'Sneha Reddy',
+          category: 'Public Health',
+          priority: 'critical',
+          status: 'pending',
+          date: '2026-01-01',
+          location: 'Bangalore, Karnataka',
+          description: 'Garbage not collected for over a week, causing health hazards',
+          aiSummary: 'Sanitation crisis in residential area',
+          createdAt: '2026-01-01T11:45:00Z'
+        },
+        {
+          _id: 'GRV20251230',
+          citizenName: 'Mohammed Ali',
+          category: 'Municipal Services',
+          priority: 'low',
+          status: 'resolved',
+          date: '2025-12-30',
+          location: 'Hyderabad, Telangana',
+          description: 'Park maintenance required',
+          aiSummary: 'Routine maintenance request',
+          createdAt: '2025-12-30T16:00:00Z'
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const stats = {
@@ -105,7 +157,7 @@ const AdminDashboard = () => {
       (g._id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (g.citizenName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (g.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (g.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (g.aiSummary || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -116,24 +168,23 @@ const AdminDashboard = () => {
       medium: { color: '#3b82f6', bg: '#eff6ff', icon: '🟡', label: 'MEDIUM' },
       low: { color: '#10b981', bg: '#f0fdf4', icon: '🟢', label: 'LOW' }
     };
-    return configs[priority?.toLowerCase()] || configs.medium;
+    return configs[priority] || configs.medium;
   };
 
   const getStatusConfig = (status) => {
     const configs = {
       pending: { color: '#f59e0b', bg: '#fffbeb', icon: '⏳', label: 'Pending' },
       'in-progress': { color: '#3b82f6', bg: '#eff6ff', icon: '⚙️', label: 'In Progress' },
-      resolved: { color: '#10b981', bg: '#f0fdf4', icon: '✓', label: 'Resolved' },
-      rejected: { color: '#dc2626', bg: '#fef2f2', icon: '✕', label: 'Rejected' }
+      resolved: { color: '#10b981', bg: '#f0fdf4', icon: '✓', label: 'Resolved' }
     };
-    return configs[status?.toLowerCase()] || configs.pending;
+    return configs[status] || configs.pending;
   };
 
   if (loading) {
     return (
       <div style={styles.loadingContainer}>
         <div style={styles.spinner}></div>
-        <p style={styles.loadingText}>Connecting to Government Portal...</p>
+        <p style={styles.loadingText}>Loading dashboard...</p>
       </div>
     );
   }
@@ -155,40 +206,50 @@ const AdminDashboard = () => {
         </div>
         <div style={styles.headerActions}>
           <button onClick={() => window.location.href = '/'} style={styles.homeBtn}>
-            <span>←</span> Back to Home
+            <span>←</span>
+            Back to Home
           </button>
           <button onClick={fetchGrievances} style={styles.refreshBtn}>
-            <span style={styles.refreshIcon}>↻</span> Refresh
+            <span style={styles.refreshIcon}>↻</span>
+            Refresh
           </button>
         </div>
       </div>
 
+      {/* Main Content */}
       <div style={styles.mainContent}>
-        {/* Welcome & Stats Section */}
+        {/* Welcome Section with Stats */}
         <div style={styles.welcomeCard}>
           <div style={styles.welcomeHeader}>
             <div>
               <h2 style={styles.welcomeTitle}>Welcome, Administrator</h2>
-              <p style={styles.welcomeText}>Real-time monitoring of citizen grievances via Render API</p>
+              <p style={styles.welcomeText}>Monitor and manage citizen grievances in real-time</p>
             </div>
-            {error && <div style={styles.errorBadge}>⚠️ {error}</div>}
+            {error && (
+              <div style={styles.errorBadge}>
+                ⚠️ Demo Mode - {error}
+              </div>
+            )}
           </div>
           
+          {/* Stats Grid - Now inside welcome card */}
           <div style={styles.statsGrid}>
             <div style={{...styles.statCard, ...styles.statCardTotal}}>
               <div style={styles.statIcon}>📊</div>
               <div style={styles.statContent}>
                 <div style={styles.statNumber}>{stats.total}</div>
-                <div style={styles.statLabel}>Total</div>
+                <div style={styles.statLabel}>Total Grievances</div>
               </div>
             </div>
+
             <div style={{...styles.statCard, ...styles.statCardPending}}>
               <div style={styles.statIcon}>⏳</div>
               <div style={styles.statContent}>
                 <div style={styles.statNumber}>{stats.pending}</div>
-                <div style={styles.statLabel}>Pending</div>
+                <div style={styles.statLabel}>Pending Review</div>
               </div>
             </div>
+
             <div style={{...styles.statCard, ...styles.statCardProgress}}>
               <div style={styles.statIcon}>⚙️</div>
               <div style={styles.statContent}>
@@ -196,6 +257,7 @@ const AdminDashboard = () => {
                 <div style={styles.statLabel}>In Progress</div>
               </div>
             </div>
+
             <div style={{...styles.statCard, ...styles.statCardResolved}}>
               <div style={styles.statIcon}>✓</div>
               <div style={styles.statContent}>
@@ -206,18 +268,19 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Controls Bar */}
         <div style={styles.controlsBar}>
           <div style={styles.searchBox}>
             <span style={styles.searchIcon}>🔍</span>
             <input
               type="text"
-              placeholder="Search by ID, name, or category..."
+              placeholder="Search by ID, name, category, or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={styles.searchInput}
             />
           </div>
+
           <div style={styles.filterGroup}>
             {['all', 'pending', 'in-progress', 'resolved'].map(f => (
               <button
@@ -228,162 +291,1010 @@ const AdminDashboard = () => {
                   ...(filter === f ? styles.filterBtnActive : {})
                 }}
               >
-                {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'all' ? 'All' : 
+                 f === 'in-progress' ? 'In Progress' :
+                 f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Grievance Grid */}
-        <div style={styles.cardsGrid}>
-          {filteredGrievances.map((g, index) => {
-            const pConfig = getPriorityConfig(g.priority);
-            const sConfig = getStatusConfig(g.status);
-            return (
-              <div key={g._id} style={{...styles.grievanceCard, animation: `slideIn 0.4s ease ${index * 0.05}s both`}}>
-                <div style={styles.cardHeader}>
-                  <div style={styles.cardId}>{g._id?.slice(-8).toUpperCase()}</div>
-                  <div style={{...styles.priorityBadge, color: pConfig.color, background: pConfig.bg}}>
-                    {pConfig.icon} {pConfig.label}
-                  </div>
-                </div>
-                <div style={styles.cardBody}>
-                  <h3 style={styles.cardTitle}>{g.category}</h3>
-                  <p style={styles.cardDescription}>{g.description?.substring(0, 100)}...</p>
-                  <div style={styles.cardMeta}>
-                    <div style={styles.metaItem}>👤 {g.citizenName}</div>
-                    <div style={styles.metaItem}>📅 {new Date(g.createdAt).toLocaleDateString('en-IN')}</div>
-                  </div>
-                </div>
-                <div style={styles.cardFooter}>
-                  <div style={{...styles.statusBadge, color: sConfig.color, background: sConfig.bg}}>
-                    {sConfig.icon} {sConfig.label}
-                  </div>
-                  <button style={styles.actionBtn} onClick={() => openDetailsModal(g)}>
-                    View Details →
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+        <div style={styles.resultInfo}>
+          Showing <strong>{filteredGrievances.length}</strong> of <strong>{grievances.length}</strong> grievances
         </div>
+
+        {/* Grievances Grid */}
+        {filteredGrievances.length === 0 ? (
+          <div style={styles.emptyState}>
+            <div style={styles.emptyIcon}>📭</div>
+            <h3 style={styles.emptyTitle}>No Grievances Found</h3>
+            <p style={styles.emptyText}>
+              {searchTerm ? 'Try adjusting your search terms' : 
+               filter === 'all' ? 'No grievances in the system yet' : 
+               `No ${filter} grievances at the moment`}
+            </p>
+          </div>
+        ) : (
+          <div style={styles.cardsGrid}>
+            {filteredGrievances.map((grievance, index) => {
+              const priorityConfig = getPriorityConfig(grievance.priority?.toLowerCase());
+              const statusConfig = getStatusConfig(grievance.status?.toLowerCase());
+              
+              return (
+                <div 
+                  key={grievance._id} 
+                  style={{
+                    ...styles.grievanceCard,
+                    animation: `slideIn 0.4s ease ${index * 0.05}s both`
+                  }}
+                >
+                  <div style={styles.cardHeader}>
+                    <div style={styles.cardId}>{grievance._id?.slice(-8).toUpperCase() || 'N/A'}</div>
+                    <div style={{
+                      ...styles.priorityBadge,
+                      color: priorityConfig.color,
+                      background: priorityConfig.bg
+                    }}>
+                      {priorityConfig.icon} {priorityConfig.label}
+                    </div>
+                  </div>
+
+                  <div style={styles.cardBody}>
+                    <h3 style={styles.cardTitle}>{grievance.category || 'Uncategorized'}</h3>
+                    <p style={styles.cardDescription}>{grievance.description || 'No description provided'}</p>
+                    
+                    <div style={styles.cardMeta}>
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaIcon}>👤</span>
+                        <span>{grievance.citizenName || 'Anonymous'}</span>
+                      </div>
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaIcon}>📋</span>
+                        <span>{grievance.aiSummary || 'No summary available'}</span>
+                      </div>
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaIcon}>📅</span>
+                        <span>{grievance.createdAt ? new Date(grievance.createdAt).toLocaleDateString('en-IN', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        }) : 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={styles.cardFooter}>
+                    <div style={{
+                      ...styles.statusBadge,
+                      color: statusConfig.color,
+                      background: statusConfig.bg
+                    }}>
+                      {statusConfig.icon} {statusConfig.label}
+                    </div>
+                    <button 
+                      style={styles.actionBtn}
+                      onClick={() => openDetailsModal(grievance)}
+                    >
+                      View Details →
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Modern Modal Overlay */}
+      {/* Details Modal */}
       {showModal && selectedGrievance && (
         <div style={styles.modalOverlay} onClick={closeModal}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-               <h2 style={styles.modalTitle}>Grievance Detail</h2>
-               <span style={styles.modalId}>#{selectedGrievance._id?.slice(-8).toUpperCase()}</span>
-               <button style={styles.closeBtn} onClick={closeModal}>✕</button>
+              <div style={styles.modalTitleSection}>
+                <h2 style={styles.modalTitle}>Grievance Details</h2>
+                <span style={styles.modalId}>#{selectedGrievance._id?.slice(-8).toUpperCase() || 'N/A'}</span>
+              </div>
+              <button style={styles.closeBtn} onClick={closeModal}>✕</button>
             </div>
+            
             <div style={styles.modalBody}>
-               <div style={styles.detailSection}>
-                  <h3 style={styles.detailLabel}>📝 Citizen Description</h3>
-                  <p style={styles.detailDescription}>{selectedGrievance.description}</p>
-               </div>
-               <div style={styles.detailSection}>
-                  <h3 style={styles.detailLabel}>🤖 AI Summary</h3>
-                  <p style={styles.detailValue}>{selectedGrievance.aiSummary || "Processing summary..."}</p>
-               </div>
-               <div style={styles.detailSection}>
-                  <h3 style={styles.detailLabel}>👤 Reported By</h3>
-                  <p style={styles.detailValue}>{selectedGrievance.citizenName}</p>
-               </div>
+              {/* Status and Priority Section */}
+              <div style={styles.statusSection}>
+                <div style={{
+                  ...styles.modalStatusBadge,
+                  color: getStatusConfig(selectedGrievance.status?.toLowerCase()).color,
+                  background: getStatusConfig(selectedGrievance.status?.toLowerCase()).bg
+                }}>
+                  {getStatusConfig(selectedGrievance.status?.toLowerCase()).icon} {getStatusConfig(selectedGrievance.status?.toLowerCase()).label}
+                </div>
+                <div style={{
+                  ...styles.modalPriorityBadge,
+                  color: getPriorityConfig(selectedGrievance.priority?.toLowerCase()).color,
+                  background: getPriorityConfig(selectedGrievance.priority?.toLowerCase()).bg
+                }}>
+                  {getPriorityConfig(selectedGrievance.priority?.toLowerCase()).icon} {getPriorityConfig(selectedGrievance.priority?.toLowerCase()).label} Priority
+                </div>
+              </div>
+
+              {/* Category */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📁 Category</h3>
+                <p style={styles.detailValue}>{selectedGrievance.category || 'Uncategorized'}</p>
+              </div>
+
+              {/* Description */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📝 Description</h3>
+                <p style={styles.detailDescription}>{selectedGrievance.description || 'No description provided'}</p>
+              </div>
+
+              {/* AI Summary */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>🤖 AI Summary</h3>
+                <p style={styles.detailValue}>{selectedGrievance.aiSummary || 'AI summary not available'}</p>
+              </div>
+
+              {/* Citizen Information */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>👤 Citizen Information</h3>
+                <div style={styles.infoGrid}>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Name:</span>
+                    <span style={styles.infoValue}>{selectedGrievance.citizenName || selectedGrievance.name || 'Anonymous'}</span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Email:</span>
+                    <span style={styles.infoValue}>{selectedGrievance.email || 'Not provided'}</span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Phone:</span>
+                    <span style={styles.infoValue}>{selectedGrievance.phone || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📍 Location</h3>
+                <p style={styles.detailValue}>{selectedGrievance.location || 'Location not specified'}</p>
+              </div>
+
+              {/* Dates */}
+              <div style={styles.detailSection}>
+                <h3 style={styles.detailLabel}>📅 Timeline</h3>
+                <div style={styles.infoGrid}>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Filed On:</span>
+                    <span style={styles.infoValue}>
+                      {selectedGrievance.createdAt 
+                        ? new Date(selectedGrievance.createdAt).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : selectedGrievance.date || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Last Updated:</span>
+                    <span style={styles.infoValue}>
+                      {selectedGrievance.updatedAt 
+                        ? new Date(selectedGrievance.updatedAt).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Attachments if any */}
+              {selectedGrievance.attachments && selectedGrievance.attachments.length > 0 && (
+                <div style={styles.detailSection}>
+                  <h3 style={styles.detailLabel}>📎 Attachments</h3>
+                  <div style={styles.attachmentsList}>
+                    {selectedGrievance.attachments.map((attachment, idx) => (
+                      <a key={idx} href={attachment} target="_blank" rel="noopener noreferrer" style={styles.attachmentLink}>
+                        Attachment {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
             <div style={styles.modalFooter}>
-               <div style={styles.statusDropdownContainer}>
-                  <button 
-                    style={styles.modalActionBtn} 
-                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  >
-                    {updatingStatus ? 'Updating...' : '⚡ Change Status'}
-                  </button>
-                  {showStatusDropdown && (
-                    <div style={styles.statusDropdown}>
-                      {['pending', 'in-progress', 'resolved', 'rejected'].map(st => (
-                        <button key={st} style={styles.statusOption} onClick={() => updateGrievanceStatus(st)}>
-                          {st.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-               </div>
-               <button style={styles.modalCloseBtn} onClick={closeModal}>Close</button>
+              <button style={styles.modalCloseBtn} onClick={closeModal}>
+                Close
+              </button>
+              <div style={styles.statusDropdownContainer}>
+                <button 
+                  style={styles.modalActionBtn}
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  disabled={updatingStatus}
+                >
+                  {updatingStatus ? '⏳ Updating...' : '⚡ Update Status'}
+                </button>
+                {showStatusDropdown && (
+                  <div style={styles.statusDropdown}>
+                    <div style={styles.dropdownHeader}>Change Status To:</div>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...(selectedGrievance.status?.toLowerCase() === 'pending' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('pending')}
+                    >
+                      <span style={styles.statusDot('#f59e0b')}></span>
+                      ⏳ Pending
+                      {selectedGrievance.status?.toLowerCase() === 'pending' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...(selectedGrievance.status?.toLowerCase() === 'in-progress' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('in-progress')}
+                    >
+                      <span style={styles.statusDot('#3b82f6')}></span>
+                      ⚙️ In Progress
+                      {selectedGrievance.status?.toLowerCase() === 'in-progress' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...(selectedGrievance.status?.toLowerCase() === 'resolved' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('resolved')}
+                    >
+                      <span style={styles.statusDot('#10b981')}></span>
+                      ✓ Resolved
+                      {selectedGrievance.status?.toLowerCase() === 'resolved' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                    <button 
+                      style={{
+                        ...styles.statusOption,
+                        ...styles.statusOptionReject,
+                        ...(selectedGrievance.status?.toLowerCase() === 'rejected' ? styles.statusOptionActive : {})
+                      }}
+                      onClick={() => updateGrievanceStatus('rejected')}
+                    >
+                      <span style={styles.statusDot('#dc2626')}></span>
+                      ✕ Rejected
+                      {selectedGrievance.status?.toLowerCase() === 'rejected' && <span style={styles.currentBadge}>Current</span>}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-};
+}
 
-// --- STYLES OBJECT (VERSION A's DARK THEME) ---
 const styles = {
-  container: { minHeight: '100vh', background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)', fontFamily: "'Inter', sans-serif" },
-  loadingContainer: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a' },
-  spinner: { width: '50px', height: '50px', border: '5px solid rgba(59, 130, 246, 0.2)', borderTop: '5px solid #3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' },
-  loadingText: { marginTop: '20px', color: '#94a3b8', fontWeight: '500' },
-  topBar: { background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
-  brandSection: { display: 'flex', alignItems: 'center', gap: '16px' },
-  brandTitle: { fontSize: '22px', fontWeight: '700', color: 'white', margin: 0 },
-  brandSubtitle: { fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)', margin: 0 },
-  headerActions: { display: 'flex', gap: '12px' },
-  homeBtn: { padding: '10px 18px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' },
-  refreshBtn: { padding: '10px 18px', background: 'white', color: '#1e40af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' },
-  mainContent: { padding: '40px' },
-  welcomeCard: { background: 'white', borderRadius: '16px', padding: '25px', marginBottom: '30px' },
-  welcomeTitle: { fontSize: '24px', color: '#0f172a', margin: '0 0 5px 0' },
-  welcomeText: { color: '#64748b', margin: 0 },
-  errorBadge: { padding: '8px 15px', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginTop: '20px' },
-  statCard: { background: '#f8fafc', padding: '20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', borderLeft: '5px solid' },
+  container: {
+    minHeight: '100vh',
+    background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  },
+  
+  loadingContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+  },
+  
+  spinner: {
+    width: '60px',
+    height: '60px',
+    border: '5px solid rgba(59, 130, 246, 0.2)',
+    borderTop: '5px solid #3b82f6',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+  },
+  
+  loadingText: {
+    marginTop: '24px',
+    color: '#94a3b8',
+    fontSize: '18px',
+    fontWeight: '500',
+  },
+  
+  topBar: {
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+    padding: '24px 40px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+  },
+  
+  brandSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  
+  flag: {
+    fontSize: '48px',
+  },
+  
+  brandTitle: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: 'white',
+    margin: '0 0 4px 0',
+  },
+  
+  brandSubtitle: {
+    fontSize: '13px',
+    color: 'rgba(255, 255, 255, 0.9)',
+    margin: 0,
+    fontWeight: '500',
+  },
+  
+  headerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+
+  homeBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 24px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    color: 'white',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    backdropFilter: 'blur(4px)',
+  },
+
+  refreshBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 24px',
+    background: 'white',
+    color: '#1e40af',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  },
+  
+  refreshIcon: {
+    fontSize: '18px',
+    fontWeight: '700',
+  },
+  
+  mainContent: {
+    width: '100%',
+    padding: '40px 48px',
+    boxSizing: 'border-box',
+  },
+  
+  welcomeCard: {
+    background: 'white',
+    borderRadius: '16px',
+    padding: '32px',
+    marginBottom: '32px',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+  },
+  
+  welcomeHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  
+  welcomeTitle: {
+    fontSize: '28px',
+    fontWeight: '800',
+    color: '#0f172a',
+    margin: '0 0 8px 0',
+  },
+  
+  welcomeText: {
+    fontSize: '15px',
+    color: '#64748b',
+    margin: 0,
+  },
+  
+  errorBadge: {
+    padding: '12px 20px',
+    background: '#fef2f2',
+    border: '2px solid #fecaca',
+    borderRadius: '10px',
+    color: '#dc2626',
+    fontSize: '13px',
+    fontWeight: '600',
+  },
+  
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '20px',
+  },
+  
+  statCard: {
+    background: '#f1f5f9',
+    borderRadius: '16px',
+    padding: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    border: '1px solid #e2e8f0',
+    borderLeft: '5px solid',
+    transition: 'all 0.3s',
+  },
+  
   statCardTotal: { borderLeftColor: '#3b82f6' },
   statCardPending: { borderLeftColor: '#f59e0b' },
   statCardProgress: { borderLeftColor: '#8b5cf6' },
   statCardResolved: { borderLeftColor: '#10b981' },
-  statNumber: { fontSize: '28px', fontWeight: '800', color: '#0f172a' },
-  statLabel: { fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' },
-  controlsBar: { display: 'flex', gap: '15px', marginBottom: '25px' },
-  searchBox: { flex: 1, background: 'white', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 15px' },
-  searchInput: { border: 'none', outline: 'none', width: '100%', padding: '12px', fontSize: '14px' },
-  filterGroup: { display: 'flex', gap: '8px' },
-  filterBtn: { padding: '10px 18px', borderRadius: '8px', border: 'none', background: 'white', color: '#64748b', fontWeight: '600', cursor: 'pointer' },
-  filterBtnActive: { background: '#3b82f6', color: 'white' },
-  cardsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' },
-  grievanceCard: { background: 'white', borderRadius: '15px', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
-  cardHeader: { padding: '15px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' },
-  priorityBadge: { padding: '5px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '800' },
-  cardTitle: { fontSize: '17px', fontWeight: '700', marginBottom: '10px' },
-  cardDescription: { fontSize: '13px', color: '#64748b', lineHeight: '1.5' },
-  cardFooter: { padding: '15px', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  statusBadge: { padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' },
-  actionBtn: { padding: '8px 15px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' },
-  modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modalContent: { background: 'white', width: '90%', maxWidth: '600px', borderRadius: '20px', overflow: 'hidden' },
-  modalHeader: { background: '#1e40af', padding: '20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  modalBody: { padding: '25px' },
-  detailSection: { marginBottom: '20px' },
-  detailLabel: { fontSize: '12px', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px' },
-  detailDescription: { background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' },
-  modalFooter: { padding: '20px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '10px' },
-  modalActionBtn: { padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' },
-  modalCloseBtn: { padding: '10px 20px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-  statusDropdownContainer: { position: 'relative' },
-  statusDropdown: { position: 'absolute', bottom: '100%', right: 0, background: 'white', border: '1px solid #ddd', borderRadius: '8px', padding: '5px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
-  statusOption: { display: 'block', width: '100%', padding: '10px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }
+  
+  statIcon: {
+    fontSize: '40px',
+    width: '64px',
+    height: '64px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#f8fafc',
+    borderRadius: '14px',
+  },
+  
+  statContent: {
+    flex: 1,
+  },
+  
+  statNumber: {
+    fontSize: '36px',
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: '4px',
+  },
+  
+  statLabel: {
+    fontSize: '13px',
+    color: '#64748b',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  
+  controlsBar: {
+    display: 'flex',
+    gap: '20px',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+  },
+  
+  searchBox: {
+    flex: '1 1 400px',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    background: 'white',
+    borderRadius: '12px',
+    padding: '0 20px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+  },
+  
+  searchIcon: {
+    fontSize: '20px',
+    marginRight: '12px',
+  },
+  
+  searchInput: {
+    flex: 1,
+    border: 'none',
+    outline: 'none',
+    padding: '16px 0',
+    fontSize: '15px',
+    color: '#0f172a',
+    background: 'transparent',
+  },
+  
+  filterGroup: {
+    display: 'flex',
+    gap: '12px',
+  },
+  
+  filterBtn: {
+    padding: '14px 24px',
+    background: 'white',
+    color: '#64748b',
+    border: '2px solid transparent',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    whiteSpace: 'nowrap',
+  },
+  
+  filterBtnActive: {
+    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+    color: 'white',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+  },
+  
+  resultInfo: {
+    color: '#cbd5e1',
+    fontSize: '14px',
+    marginBottom: '24px',
+    fontWeight: '500',
+  },
+  
+  emptyState: {
+    textAlign: 'center',
+    padding: '80px 20px',
+    background: 'white',
+    borderRadius: '20px',
+    marginTop: '40px',
+  },
+  
+  emptyIcon: {
+    fontSize: '72px',
+    marginBottom: '20px',
+  },
+  
+  emptyTitle: {
+    fontSize: '26px',
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: '12px',
+  },
+  
+  emptyText: {
+    color: '#64748b',
+    fontSize: '16px',
+  },
+  
+  cardsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+    gap: '24px',
+  },
+  
+  grievanceCard: {
+    background: 'white',
+    borderRadius: '16px',
+    overflow: 'hidden',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.3s',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  
+  cardHeader: {
+    padding: '20px 24px',
+    background: '#f8fafc',
+    borderBottom: '2px solid #f1f5f9',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  
+  cardId: {
+    fontFamily: 'monospace',
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#3b82f6',
+  },
+  
+  priorityBadge: {
+    padding: '6px 12px',
+    borderRadius: '8px',
+    fontSize: '11px',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  
+  cardBody: {
+    padding: '24px',
+    flex: 1,
+  },
+  
+  cardTitle: {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: '12px',
+  },
+  
+  cardDescription: {
+    fontSize: '14px',
+    color: '#64748b',
+    lineHeight: '1.6',
+    marginBottom: '20px',
+  },
+  
+  cardMeta: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  
+  metaItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+    color: '#475569',
+  },
+  
+  metaIcon: {
+    fontSize: '16px',
+  },
+  
+  cardFooter: {
+    padding: '20px 24px',
+    background: '#f8fafc',
+    borderTop: '2px solid #f1f5f9',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  
+  statusBadge: {
+    padding: '8px 16px',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '600',
+  },
+  
+  actionBtn: {
+    padding: '10px 20px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '13px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(15, 23, 42, 0.8)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: '20px',
+    animation: 'fadeIn 0.3s ease',
+  },
+
+  modalContent: {
+    background: 'white',
+    borderRadius: '20px',
+    width: '100%',
+    maxWidth: '700px',
+    maxHeight: '90vh',
+    overflow: 'hidden',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+    animation: 'slideUp 0.3s ease',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
+  modalHeader: {
+    padding: '24px 32px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  modalTitleSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+
+  modalTitle: {
+    fontSize: '22px',
+    fontWeight: '700',
+    color: 'white',
+    margin: 0,
+  },
+
+  modalId: {
+    padding: '6px 14px',
+    background: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '700',
+    color: 'white',
+    fontFamily: 'monospace',
+  },
+
+  closeBtn: {
+    width: '40px',
+    height: '40px',
+    border: 'none',
+    background: 'rgba(255, 255, 255, 0.2)',
+    color: 'white',
+    borderRadius: '10px',
+    fontSize: '18px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+  },
+
+  modalBody: {
+    padding: '32px',
+    overflowY: 'auto',
+    flex: 1,
+  },
+
+  statusSection: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '28px',
+  },
+
+  modalStatusBadge: {
+    padding: '10px 18px',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+  },
+
+  modalPriorityBadge: {
+    padding: '10px 18px',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '700',
+  },
+
+  detailSection: {
+    marginBottom: '24px',
+    paddingBottom: '24px',
+    borderBottom: '1px solid #f1f5f9',
+  },
+
+  detailLabel: {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#64748b',
+    marginBottom: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+
+  detailValue: {
+    fontSize: '16px',
+    color: '#1e293b',
+    margin: 0,
+    fontWeight: '500',
+  },
+
+  detailDescription: {
+    fontSize: '15px',
+    color: '#475569',
+    margin: 0,
+    lineHeight: '1.7',
+    background: '#f8fafc',
+    padding: '16px',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+  },
+
+  infoGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '16px',
+  },
+
+  infoItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+
+  infoLabel: {
+    fontSize: '13px',
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+
+  infoValue: {
+    fontSize: '15px',
+    color: '#1e293b',
+    fontWeight: '500',
+  },
+
+  attachmentsList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '12px',
+  },
+
+  attachmentLink: {
+    padding: '10px 16px',
+    background: '#eff6ff',
+    color: '#3b82f6',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'all 0.2s',
+  },
+
+  modalFooter: {
+    padding: '20px 32px',
+    background: '#f8fafc',
+    borderTop: '1px solid #e2e8f0',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '12px',
+  },
+
+  modalCloseBtn: {
+    padding: '12px 24px',
+    background: '#e2e8f0',
+    color: '#475569',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+
+  modalActionBtn: {
+    padding: '12px 24px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+  },
+
+  // Status Dropdown Styles
+  statusDropdownContainer: {
+    position: 'relative',
+  },
+
+  statusDropdown: {
+    position: 'absolute',
+    bottom: '100%',
+    right: 0,
+    marginBottom: '8px',
+    background: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+    border: '1px solid #e2e8f0',
+    overflow: 'hidden',
+    minWidth: '200px',
+    animation: 'slideUp 0.2s ease',
+  },
+
+  dropdownHeader: {
+    padding: '12px 16px',
+    background: '#f8fafc',
+    fontSize: '12px',
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    borderBottom: '1px solid #e2e8f0',
+  },
+
+  statusOption: {
+    width: '100%',
+    padding: '14px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    background: 'white',
+    border: 'none',
+    borderBottom: '1px solid #f1f5f9',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#1e293b',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    textAlign: 'left',
+  },
+
+  statusOptionActive: {
+    background: '#eff6ff',
+  },
+
+  statusOptionReject: {
+    color: '#dc2626',
+  },
+
+  statusDot: (color) => ({
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    background: color,
+    display: 'inline-block',
+  }),
+
+  currentBadge: {
+    marginLeft: 'auto',
+    padding: '2px 8px',
+    background: '#e0f2fe',
+    color: '#0369a1',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: '600',
+  },
 };
 
-// Injection of keyframes
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = `
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    button:hover { opacity: 0.9; transform: translateY(-1px); transition: 0.2s; }
-  `;
-  document.head.appendChild(styleSheet);
-}
-
-export default AdminDashboard;
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+  }
+  .grievanceCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+  }
+  .statCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  }
+`;
+document.head.appendChild(styleSheet);
