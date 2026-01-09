@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// 1. CRITICAL: The function name must be AdminDashboard to match your export and App.jsx import
-export default function AdminDashboard() {
+const AdminDashboard = () => {
+  // FIXED: Removed the duplicate 'grievances' line that was causing the build crash
   const [grievances, setGrievances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,30 +12,18 @@ export default function AdminDashboard() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  // 2. Load data from Render on component mount
-  useEffect(() => {
-    fetchGrievances();
-  }, []);
-
+  // 1. Define the Fetch Logic
   const fetchGrievances = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Direct call to your verified Render endpoint
       const response = await fetch('https://bytequest-portal-backend.onrender.com/api/grievances');
-      
-      if (!response.ok) {
-         throw new Error(`Server responded with ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error(`Server responded with ${response.status}`);
       const data = await response.json();
-      // Success: Populate state with real data from MongoDB Atlas
       setGrievances(data); 
     } catch (err) {
       console.error("Fetch Error:", err);
       setError('Server is waking up or unreachable. Displaying demo data...');
-      
-      // Fallback: Demo data for when the Render server is "sleeping"
       setGrievances([
         {
           _id: 'DEMO101',
@@ -53,6 +41,7 @@ export default function AdminDashboard() {
     }
   };
 
+  // 2. Define the Status Update Logic
   const updateGrievanceStatus = async (newStatus) => {
     if (!selectedGrievance) return;
     setUpdatingStatus(true);
@@ -77,21 +66,33 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- UI Rendering Logic ---
-  // (Include your styles and return statement here, exactly as they were)
+  // 3. Trigger the fetch on load
+  useEffect(() => {
+    fetchGrievances();
+  }, []);
+
   return (
-    <div style={{ padding: '20px', color: 'white' }}>
+    <div style={{ padding: '20px', color: 'white', backgroundColor: '#121212', minHeight: '100vh' }}>
       <h1>Admin Dashboard</h1>
-      {loading ? <p>Loading...</p> : (
+      <hr />
+      {loading ? (
+        <p>Loading grievances from Render...</p>
+      ) : (
         <div>
-          {error && <p style={{ color: 'orange' }}>{error}</p>}
-          <ul>
-            {grievances.map(g => (
-              <li key={g._id}>{g.citizenName} - {g.status}</li>
+          {error && <p style={{ color: '#ff9800' }}>{error}</p>}
+          <div style={{ display: 'grid', gap: '15px' }}>
+            {grievances.map((g) => (
+              <div key={g._id || Math.random()} style={{ border: '1px solid #333', padding: '15px', borderRadius: '8px' }}>
+                <h3>{g.citizenName}</h3>
+                <p><strong>Status:</strong> {g.status}</p>
+                <p>{g.description}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default AdminDashboard;
